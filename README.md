@@ -1,6 +1,6 @@
 # OBJECTIVE: Create a SQL server database and use it for different projects of the present github profile.
-I installed Spark cluster on AWS cloud and showed some its important functionalities. 
-* The file **spark_installation.txt** describes the installation procedure. This is done on top of a Hadoop YARN cluster, which I installed previously (for details see [Hadoop-Hive](https://github.com/PavelPll/Hadoop-HIVE) project in the current git repository).  
+The file **SQL_server_installation.txt** describes the installation procedure. I used this server for
+* Extract Transfer Load (ETL) Spark pipeline (for details see [toSQL.scala]([https://github.com/PavelPll/Hadoop-HIVE](https://github.com/PavelPll/Spark-ETL-ML/blob/main/Scala_ETL/toSQL.scala)).  
 * The folder **./Scala_ETL** contains the example of ETL (Extract Transfer Load) pipeline written in Scala.
 * The folder **./Java_ML** contains the example of simple machine learning pipeline in Java.
 * The example of data batch processing with Spark (**./Streaming**).

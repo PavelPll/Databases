@@ -1,4 +1,5 @@
-# OBJECTIVE: Create AWS S3 bucket for ETL Spark project.
+# OBJECTIVE: Create AWS S3 bucket and use it for ETL Spark project.
+AWS S3 bucket can be created directly using AWS console. 
 The file **SQL_server_installation.txt** describes the installation procedure. I used this postreSQL server for
 * Extract Transfer Load (ETL) Spark pipeline (for details see [toSQL.scala](https://github.com/PavelPll/Spark-ETL-ML/blob/main/Scala_ETL/toSQL.scala)).  
 * For Spark streaming (for details see [toSQLstreaming.scala](https://github.com/PavelPll/Spark-ETL-ML/blob/main/Streaming/src/main/scala/toSQLstreaming.scala)).

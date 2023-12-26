@@ -1,0 +1,160 @@
+I followed official Hbase documentation to install it
+https://hbase.apache.org/book.html#quickstart
+
+There are three Hbase run modes (from documentation):
+-  In standalone mode, HBase does not use HDFS — it uses the local filesystem instead — and it runs all HBase daemons and a local ZooKeeper all up in the same JVM. ZooKeeper binds to a well-known port so clients may talk to HBase. A standalone instance has all HBase daemons — the Master, RegionServers, and ZooKeeper — running in a single JVM persisting to the local filesystem.
+-  A pseudo-distributed mode is simply a fully-distributed mode run on a single host. HBase uses HDFS (not the local filesystem as in standalone mode)
+-  In distributed mode, multiple instances of HBase daemons run on multiple servers in the cluster.
+
+I installed Hbase om hadoop master in a pseudo-distributed mode. In this mode Hbase writes all data into HDFS.
+
+(1) START Hadoop HDFS
+stop-all.sh
+start-dfs.sh
+start-yarn.sh
+
+(2) DOWNLOAD tar
+go here https://www.apache.org/dyn/closer.lua/hbase/
+then https://dlcdn.apache.org/hbase/
+select stable version (You don't have permission to access this resource.)
+click on 2.5.7
+click on hbase-2.5.7-bin.tar.gz  
+or wget https://dlcdn.apache.org/hbase/2.5.6/hbase-2.5.6-bin.tar.gz
+tar xzvf hbase-2.5.6-bin.tar.gz
+rm -rf hbase-2.5.6-bin.tar.gz
+
+(3) SPECIFY java version
+cd hbase-2.5.6
+nano conf/hbase-env.sh
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+I GOT java version from here:
+ubuntu@masternode:~/hbase-2.5.6$ dirname $(dirname $(readlink -f $(which java)))
+/usr/lib/jvm/java-8-openjdk-amd64/jre
+
+(4) 
+export HBASE_HOME=/home/ubuntu/hbase-2.5.6
+export PATH= $PATH:$HBASE_HOME/bin
+
+(5)
+bin/start-hbase.sh
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/home/ubuntu/hadoop/share/hadoop/common/lib/slf4j-reload4j-1.7.36.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/home/ubuntu/hbase-2.5.6/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Reload4jLoggerFactory]
+master running as process 3811. Stop it first.
+
+(6) CONFIGURE conf/hbase-site.xml
+nano conf/hbase-site.xml
+a. 
+run in distributed mode, with one JVM instance per daemon
+nano conf/hbase-site.xml
+change false to true
+<property>
+  <name>hbase.cluster.distributed</name>
+  <value>true</value>
+</property>
+b.
+specify where HDFS + create the folder /hbase
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://masternode:9000/hbase</value>
+  </property>
+c.
+Correction of the error: "Socket error occurred: localhost/127.0.0.1:2181: Connection refused"
+"java.util.concurrent.ExecutionException: org.apache.zookeeper.KeeperException$NoNodeException: KeeperErrorCode = NoNode for /hbase/hbaseid"
+https://stackoverflow.com/questions/31570313/hmaster-node-disappeared-while-execute-hbase-shell-command
+<property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>masternode</value>
+</property>
+<property>
+    <name>hbase.zookeeper.property.clientPort</name>
+    <value>2182</value>
+</property>
+<property>
+    <name>hbase.master</name>
+    <value>masternode:60010</value>
+</property>
+
+d.
+To handle this error: "HBase Shell - org.apache.hadoop.hbase.ipc.ServerNotRunningYetException"
+https://stackoverflow.com/questions/70523635/hbase-shell-org-apache-hadoop-hbase-ipc-servernotrunningyetexception-server-i
+<property>
+  <name>hbase.wal.provider</name>
+  <value>filesystem</value>
+</property>
+
+
+(7) START Hbase
+hbase-daemon.sh stop regionserver
+hbase-daemon.sh stop zookeeper
+stop-hbase.sh
+start-hbase.sh
+hbase shell
+
+(8) CHECK if Hbase is running (to see: HMaster, HRegionServer, HQuorumPeer)
+ubuntu@masternode:~$ jps
+3281 JarBootstrapMain
+1378 NameNode
+2147 NodeManager
+1988 ResourceManager
+1797 SecondaryNameNode
+1542 DataNode
+2950 HMaster
+3082 HRegionServer
+4461 Jps
+2847 HQuorumPeer
+
+
+(9) CHECK logs
+cd $HBASE_HOME/logs
+cat hbase-ubuntu-master-masternode.log    
+cat hbase-ubuntu-regionserver-masternode.log    
+cat hbase-ubuntu-zookeeper-masternode.log
+
+(10) CREATE table
+hbase:014:0> create 'test', 'cf'
+2023-12-26 17:28:39,289 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:postOperationResult(3591)) - Operation: CREATE, Table Name: default:test, procId: 33 completed
+Created table test
+Took 0.7632 seconds                                                                                                                                       
+=> Hbase::Table - test
+
+hbase:017:0> put 'test', 'row1', 'cf:a', 'value1'
+Took 0.2168 seconds                                                                                                                                       
+hbase:018:0> put 'test', 'row2', 'cf:b', 'value2'
+Took 0.0075 seconds   
+hbase:020:0> put 'test', 'row3', 'cf:c', 'value3'
+Took 0.0082 seconds  
+
+hbase:021:0> scan 'test'
+ROW                                     COLUMN+CELL                                                                                                       
+ row1                                   column=cf:a, timestamp=2023-12-26T17:29:12.112, value=value1                                                      
+ row2                                   column=cf:b, timestamp=2023-12-26T17:29:19.919, value=value2                                                      
+ row3                                   column=cf:c, timestamp=2023-12-26T17:29:39.512, value=value3                                                      
+3 row(s)
+Took 0.0447 seconds   
+
+(11) FIND this table in HDFS
+ubuntu@masternode:~$ hdfs dfs -ls /hbase/data/default
+Found 1 items
+drwxr-xr-x   - ubuntu supergroup          0 2023-12-26 17:28 /hbase/data/default/test
+
+(12) DROP the table
+
+hbase:022:0> disable 'test'
+2023-12-26 17:56:31,356 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:rpcCall(926)) - Started disable of test
+2023-12-26 17:56:32,006 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:postOperationResult(3591)) - Operation: DISABLE, Table Name: default:test, procId: 36 completed
+Took 0.6979 seconds    
+
+hbase:023:0> drop 'test'
+2023-12-26 17:56:55,034 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:postOperationResult(3591)) - Operation: DELETE, Table Name: default:test, procId: 39 completed
+Took 0.1380 seconds
+
+hbase:024:0> list
+TABLE                                                                                                                                                     
+0 row(s)
+Took 0.0057 seconds                                                                                                                                       
+=> []
+
+

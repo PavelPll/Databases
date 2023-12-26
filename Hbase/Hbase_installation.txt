@@ -35,16 +35,7 @@ ubuntu@masternode:~/hbase-2.5.6$ dirname $(dirname $(readlink -f $(which java)))
 export HBASE_HOME=/home/ubuntu/hbase-2.5.6
 export PATH= $PATH:$HBASE_HOME/bin
 
-(5)
-bin/start-hbase.sh
-SLF4J: Class path contains multiple SLF4J bindings.
-SLF4J: Found binding in [jar:file:/home/ubuntu/hadoop/share/hadoop/common/lib/slf4j-reload4j-1.7.36.jar!/org/slf4j/impl/StaticLoggerBinder.class]
-SLF4J: Found binding in [jar:file:/home/ubuntu/hbase-2.5.6/lib/client-facing-thirdparty/log4j-slf4j-impl-2.17.2.jar!/org/slf4j/impl/StaticLoggerBinder.class]
-SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
-SLF4J: Actual binding is of type [org.slf4j.impl.Reload4jLoggerFactory]
-master running as process 3811. Stop it first.
-
-(6) CONFIGURE conf/hbase-site.xml
+(5) CONFIGURE conf/hbase-site.xml
 nano conf/hbase-site.xml
 a. 
 run in distributed mode, with one JVM instance per daemon
@@ -86,14 +77,14 @@ https://stackoverflow.com/questions/70523635/hbase-shell-org-apache-hadoop-hbase
 </property>
 
 
-(7) START Hbase
+(6) START Hbase
 hbase-daemon.sh stop regionserver
 hbase-daemon.sh stop zookeeper
 stop-hbase.sh
 start-hbase.sh
 hbase shell
 
-(8) CHECK if Hbase is running (to see: HMaster, HRegionServer, HQuorumPeer)
+(7) CHECK if Hbase is running (to see: HMaster, HRegionServer, HQuorumPeer)
 ubuntu@masternode:~$ jps
 3281 JarBootstrapMain
 1378 NameNode
@@ -107,13 +98,13 @@ ubuntu@masternode:~$ jps
 2847 HQuorumPeer
 
 
-(9) CHECK logs
+(8) CHECK logs
 cd $HBASE_HOME/logs
 cat hbase-ubuntu-master-masternode.log    
 cat hbase-ubuntu-regionserver-masternode.log    
 cat hbase-ubuntu-zookeeper-masternode.log
 
-(10) CREATE table
+(9) CREATE table
 hbase:014:0> create 'test', 'cf'
 2023-12-26 17:28:39,289 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:postOperationResult(3591)) - Operation: CREATE, Table Name: default:test, procId: 33 completed
 Created table test
@@ -135,13 +126,12 @@ ROW                                     COLUMN+CELL
 3 row(s)
 Took 0.0447 seconds   
 
-(11) FIND this table in HDFS
+(10) FIND this table in HDFS
 ubuntu@masternode:~$ hdfs dfs -ls /hbase/data/default
 Found 1 items
 drwxr-xr-x   - ubuntu supergroup          0 2023-12-26 17:28 /hbase/data/default/test
 
-(12) DROP the table
-
+(11) DROP the table
 hbase:022:0> disable 'test'
 2023-12-26 17:56:31,356 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:rpcCall(926)) - Started disable of test
 2023-12-26 17:56:32,006 INFO  [main] client.HBaseAdmin (HBaseAdmin.java:postOperationResult(3591)) - Operation: DISABLE, Table Name: default:test, procId: 36 completed

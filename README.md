@@ -1,1 +1,1 @@
-*A detailed description is provided in each folder.*
+**A detailed description is provided in each folder.
